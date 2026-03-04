@@ -1,0 +1,7 @@
+{
+  "name": "---- Ativare Experience",
+  "description": "Plataforma multi-tenant de gestão de experiência do cliente e reputação.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
