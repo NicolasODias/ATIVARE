@@ -17,16 +17,9 @@ export type FeedbackChannel = 'QR_CODE' | 'DIRECT_LINK' | 'MANUAL_CODE';
 
 export type CaseStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
 
+// Add Lead-related types
 export type LeadStage = 'LEAD' | 'CONTACTED' | 'INTEREST' | 'PROPOSAL' | 'WON' | 'LOST';
 export type LeadTemperature = 'NEW' | 'HOT' | 'WARM' | 'COLD';
-
-export interface LeadTask {
-  id: string;
-  text: string;
-  completed: boolean;
-  dueDate?: string;
-  createdAt: string;
-}
 
 export interface LeadHistory {
   id: string;
@@ -53,12 +46,12 @@ export interface User {
   role: UserRole;
   staffRole?: StaffRole; 
   companyId?: string;
-  linkedCompanyIds?: string[];
+  linkedCompanyIds?: string[]; // IDs das empresas que o Guardião ou Master pode acessar
   phone?: string;
   profilePhoto?: string;
   jobTitle?: JobTitle;
   isOnboarded: boolean;
-  mustChangePassword?: boolean;
+  mustChangePassword?: boolean; // Forçar troca de senha no primeiro login
   createdAt?: string;
 }
 
@@ -69,6 +62,7 @@ export interface Lead {
   phone: string;
   companyName: string;
   status: 'NEW' | 'CONTACTED' | 'CONVERTED';
+  // Add missing properties used in CRM
   stage: LeadStage;
   temperature: LeadTemperature;
   monthlyValue: number;
@@ -78,7 +72,6 @@ export interface Lead {
   contractStatus: 'NONE' | 'PENDING' | 'SIGNED';
   source?: string;
   history: LeadHistory[];
-  tasks: LeadTask[];
   createdAt: string;
 }
 
@@ -91,8 +84,6 @@ export interface Company {
   city: string;
   logo: string;
   experienceScore: number;
-  totalEvaluations: number; // TOTAL ACUMULADO PARA BENCHMARKING
-  benchmarkEligible: boolean; // ELEGIBILIDADE PERMANENTE (Min 120)
   cnpj?: string;
   address?: string;
   employees?: string;
@@ -108,8 +99,7 @@ export interface Company {
   status: AccountStatus;
   maxEvaluations: number;
   maxUsers: number;
-  isGuardianConsultancy?: boolean;
-  hiddenFromBenchmarking?: boolean;
+  isGuardianConsultancy?: boolean; // Tag para acesso global de Guardiões
 }
 
 export type NPSCategory = 'PROMOTER' | 'PASSIVE' | 'DETRACTOR';
@@ -134,7 +124,6 @@ export interface Feedback {
   customerId: string;
   customerName: string;
   customerPhone: string;
-  customerBirthDate?: string;
   howKnown: string;
   channel?: FeedbackChannel;
   scores: {
@@ -150,7 +139,6 @@ export interface Feedback {
   category: NPSCategory;
   averageScore: number;
   email?: string;
-  customerType?: 'local' | 'tourist';
 }
 
 export interface CaseNote {
@@ -188,7 +176,6 @@ export interface Customer {
   name: string;
   phone: string;
   email?: string;
-  birthDate?: string;
   profile?: 'family' | 'friends' | 'couple' | 'kids';
   firstSeen: string;
   lastSeen: string;
@@ -196,5 +183,4 @@ export interface Customer {
   totalFeedbacks: number;
   category: NPSCategory;
   contactLogs: ContactLog[];
-  customerType?: 'local' | 'tourist';
 }

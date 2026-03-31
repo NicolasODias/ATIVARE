@@ -60,8 +60,8 @@ const MasterFinance: React.FC = () => {
     <div className="space-y-8 pb-20 animate-in fade-in duration-500">
       {/* Top Header Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard title="Receita MRR" value={stats.mrr} subValue="Mensal Recorrente (WON)" icon={DollarSign} color="bg-primary" trend={0} />
-        <MetricCard title="Receita ARR" value={stats.arr} subValue="Anual Estimado" icon={TrendingUp} color="bg-emerald-500" trend={0} />
+        <MetricCard title="Receita MRR" value={stats.mrr} subValue="Mensal Recorrente (WON)" icon={DollarSign} color="bg-primary" trend={12} />
+        <MetricCard title="Receita ARR" value={stats.arr} subValue="Anual Estimado" icon={TrendingUp} color="bg-emerald-500" trend={8} />
         <MetricCard title="Setups & Consultoria" value={stats.totalImplementation + stats.totalConsulting} subValue="Receita One-time" icon={Zap} color="bg-amber-500" />
         <MetricCard title="Pipeline Aberto" value={stats.pipelineRevenue} subValue="Potencial em Funil" icon={Target} color="bg-indigo-500" />
       </div>

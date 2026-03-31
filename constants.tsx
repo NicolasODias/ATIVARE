@@ -18,11 +18,8 @@ import {
   DollarSign,
   HeartHandshake,
   ShieldCheck,
-  UserPlus2,
-  TrendingUp
+  UserPlus2
 } from 'lucide-react';
-
-export const BENCHMARK_MIN_EVALS = 120;
 
 export const COLORS = {
   primary: '#0047a7',
@@ -43,8 +40,6 @@ export const MOCK_COMPANIES: Company[] = [
     city: 'Poços de Caldas - MG', 
     logo: 'https://picsum.photos/seed/pizza-test/200', 
     experienceScore: 0, 
-    totalEvaluations: 0, // Resetado para contagem real via Service
-    benchmarkEligible: false, // Será calculado em runtime
     phone: '(35) 3721-0000', 
     email: 'contato@bellaitailia.com', 
     address: 'Centro, Poços de Caldas - MG',
@@ -57,87 +52,15 @@ export const MOCK_COMPANIES: Company[] = [
     employees: '11-50',
     cnpj: '12.345.678/0001-90',
     startDate: '2025-01-01T10:00:00Z'
-  },
-  { 
-    id: 'c-client-test', 
-    trackingCode: 'ATIV12', 
-    name: 'Ativare Teste Cliente', 
-    description: 'Conta de teste para validação de fluxos do plano PRO.', 
-    category: 'Restaurante', 
-    city: 'São Paulo - SP', 
-    logo: 'https://picsum.photos/seed/ativare-client/200', 
-    experienceScore: 0, 
-    totalEvaluations: 0, // Resetado para contagem real via Service
-    benchmarkEligible: false, // Será calculado em runtime
-    phone: '(11) 98888-7777', 
-    email: 'Teste@ativare.com', 
-    address: 'Av. Paulista, 1000 - Bela Vista',
-    monthlyValue: 199,
-    implementationValue: 500,
-    plan: 'PRO',
-    status: 'ACTIVE',
-    maxEvaluations: 500,
-    maxUsers: 10,
-    employees: '1-10',
-    cnpj: '44.555.666/0001-22',
-    startDate: '2024-05-15T09:00:00Z',
-    hiddenFromBenchmarking: true 
   }
 ];
 
 export const MOCK_USERS: User[] = [
-  { 
-    id: 'u-client', 
-    name: 'Cliente Teste Ativare', 
-    email: 'Teste@ativare.com', 
-    password: '12345678', 
-    role: UserRole.BUSINESS, 
-    staffRole: 'ADMIN', 
-    companyId: 'c-client-test', 
-    isOnboarded: true, 
-    jobTitle: 'Dono' 
-  },
-  { 
-    id: 'u-guardian-test', 
-    name: 'Guardião Oficial', 
-    email: 'Guardiãoteste@ativare.com', 
-    password: 'Guardiao@ativare123', 
-    role: UserRole.GUARDIAN, 
-    isOnboarded: true,
-    linkedCompanyIds: ['c-test'] 
-  },
-  { 
-    id: 'u-master-nicolas-new', 
-    name: 'Nicolas Dias', 
-    email: 'nicolasdias@ativare.com', 
-    password: '33556s3nH@', 
-    role: UserRole.ADM_MASTER, 
-    isOnboarded: true 
-  },
-  { 
-    id: 'u-master-nicolas-old', 
-    name: 'Nicolas Dias (Backup)', 
-    email: 'nicolasdias@ativareexp.com', 
-    password: '33556s3nH@@', 
-    role: UserRole.ADM_MASTER, 
-    isOnboarded: true 
-  },
-  { 
-    id: 'u-master-nicolas-official', 
-    name: 'Nicolas Dias', 
-    email: 'nicolasdeoliveira.dias901@ativareexp.com', 
-    password: '33556s3nH@@@', 
-    role: UserRole.ADM_MASTER, 
-    isOnboarded: true 
-  },
-  { 
-    id: 'u-master-luiz-official', 
-    name: 'Luiz Caetano', 
-    email: 'Ic@ativareexp.com', 
-    password: '123456789', 
-    role: UserRole.ADM_MASTER, 
-    isOnboarded: true 
-  }
+  { id: 'u-test', name: 'Ricardo Dono', email: 'ativare@teste.com', password: '12345678', role: UserRole.BUSINESS, staffRole: 'ADMIN', companyId: 'c-test', isOnboarded: true, jobTitle: 'Dono' },
+  { id: 'u1', name: 'Admin Ativare', email: 'master@ativare.com', password: '123', role: UserRole.ADM_MASTER, isOnboarded: true },
+  { id: 'u2', name: 'Guardião Exemplo', email: 'guardiao@ativare.com', password: '123', role: UserRole.GUARDIAN, isOnboarded: true },
+  { id: 'u-tulio', name: 'Tulio Bacellar', email: 'tuliobacellar9@ativareexp.com', password: 'Danda88@', role: UserRole.ADM_MASTER, isOnboarded: true },
+  { id: 'u-vendas', name: 'Vendas Ativare', email: 'vendas@ativareexp.com', password: 'Vend@s', role: UserRole.ADM_MASTER, isOnboarded: true }
 ];
 
 export const NAV_ITEMS = [
@@ -152,6 +75,5 @@ export const NAV_ITEMS = [
   { id: 'company_profile', label: 'Meu Negócio', icon: <Store className="w-5 h-5" />, roles: [UserRole.BUSINESS], staffRoles: ['ADMIN'] },
   { id: 'form_config', label: 'Config. Formulário', icon: <FormInput className="w-5 h-5" />, roles: [UserRole.BUSINESS], staffRoles: ['ADMIN'] },
   { id: 'benchmarking', label: 'Benchmarking', icon: <Globe className="w-5 h-5" />, roles: [UserRole.BUSINESS, UserRole.GUARDIAN], staffRoles: ['ADMIN'] },
-  { id: 'growth', label: 'Crescimento', icon: <TrendingUp className="w-5 h-5" />, roles: [UserRole.BUSINESS, UserRole.GUARDIAN], staffRoles: ['ADMIN'] },
   { id: 'bi', label: 'Inteligência (BI)', icon: <PieChart className="w-5 h-5" />, roles: [UserRole.BUSINESS, UserRole.GUARDIAN], staffRoles: ['ADMIN'] }
 ];

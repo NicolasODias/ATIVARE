@@ -1,7 +1,7 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { dataStore } from '../services/dataStore';
-import { Case, CaseStatus, Feedback, User, Customer } from '../types';
+import { Case, CaseStatus, Feedback, User } from '../types';
 import { 
   AlertCircle, 
   Clock, 
@@ -58,7 +58,7 @@ const CaseManagement: React.FC<CaseManagementProps> = ({ companyId, currentUser 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Cases List */}
-      <div className="lg:col-span-2 space-y-8">
+      <div className="lg:col-span-2 space-y-6">
         <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <h3 className="text-lg font-bold text-slate-800">Fila de Atendimento</h3>

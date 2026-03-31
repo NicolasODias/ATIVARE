@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { dataStore } from '../services/dataStore';
-import { Lead, LeadStage, LeadTemperature, User, LeadTask } from '../types';
+import { Lead, LeadStage, LeadTemperature, User } from '../types';
 import { 
   Plus, 
   Search, 
@@ -24,10 +24,7 @@ import {
   AlertCircle,
   Briefcase,
   FileText,
-  UserPlus,
-  Check,
-  Circle,
-  Clock
+  UserPlus
 } from 'lucide-react';
 
 interface MasterLeadsProps {
@@ -38,60 +35,41 @@ const LeadCard: React.FC<{
   lead: Lead; 
   onDragStart: (e: React.DragEvent, id: string) => void; 
   onClick: (lead: Lead) => void; 
-}> = ({ lead, onDragStart, onClick }) => {
-  const pendingTasks = lead.tasks?.filter(t => !t.completed) || [];
-  const hasUrgentTask = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return pendingTasks.some(t => t.dueDate && t.dueDate <= today);
-  }, [pendingTasks]);
-
-  return (
-    <div 
-      draggable
-      onDragStart={(e) => onDragStart(e, lead.id)}
-      onClick={() => onClick(lead)}
-      className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing mb-3 group relative"
-    >
-      <div className="flex justify-between items-start mb-3">
-        <span className={`px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-tight ${
-          lead.temperature === 'HOT' ? 'bg-red-50 text-red-500' :
-          lead.temperature === 'WARM' ? 'bg-orange-50 text-orange-500' :
-          'bg-slate-50 text-slate-400'
-        }`}>
-          {lead.temperature === 'NEW' ? 'Novo' : lead.temperature}
-        </span>
-        <div className="text-right">
-          <p className="text-[10px] font-black text-slate-900">R$ {lead.monthlyValue.toLocaleString('pt-BR')}</p>
-          <p className="text-[8px] font-bold text-slate-400 uppercase">MRR</p>
-        </div>
-      </div>
-      
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1">
-          <h4 className="text-xs font-black text-slate-800 line-clamp-1 group-hover:text-primary transition-colors">{lead.companyName}</h4>
-          <p className="text-[10px] text-slate-400 font-medium">{lead.name}</p>
-        </div>
-        {/* REQUISITO: Marcar lead no CRM se tiver tarefas pendentes. Vermelho se vencida/hoje. */}
-        {pendingTasks.length > 0 && (
-          <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg animate-pulse ${hasUrgentTask ? 'bg-red-500 text-white shadow-lg shadow-red-200' : 'bg-amber-50 text-amber-600'}`} title={`${pendingTasks.length} tarefa(s) pendente(s)`}>
-            <ListTodo className="w-3 h-3" />
-            <span className="text-[9px] font-black">{pendingTasks.length}</span>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-50">
-        <div className="flex gap-1">
-           <span className="text-[8px] font-black uppercase tracking-tighter bg-slate-50 text-slate-400 px-1.5 py-0.5 rounded border border-slate-100">{lead.source || 'Manual'}</span>
-        </div>
-        <div className="flex items-center gap-1 text-[8px] font-bold text-slate-300 uppercase">
-           <Calendar className="w-2.5 h-2.5" />
-           {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
-        </div>
+}> = ({ lead, onDragStart, onClick }) => (
+  <div 
+    draggable
+    onDragStart={(e) => onDragStart(e, lead.id)}
+    onClick={() => onClick(lead)}
+    className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing mb-3 group relative"
+  >
+    <div className="flex justify-between items-start mb-3">
+      <span className={`px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-tight ${
+        lead.temperature === 'HOT' ? 'bg-red-50 text-red-500' :
+        lead.temperature === 'WARM' ? 'bg-orange-50 text-orange-500' :
+        'bg-slate-50 text-slate-400'
+      }`}>
+        {lead.temperature === 'NEW' ? 'Novo' : lead.temperature}
+      </span>
+      <div className="text-right">
+        <p className="text-[10px] font-black text-slate-900">R$ {lead.monthlyValue.toLocaleString('pt-BR')}</p>
+        <p className="text-[8px] font-bold text-slate-400 uppercase">MRR</p>
       </div>
     </div>
-  );
-};
+    
+    <h4 className="text-xs font-black text-slate-800 line-clamp-1 group-hover:text-primary transition-colors">{lead.companyName}</h4>
+    <p className="text-[10px] text-slate-400 font-medium mb-4">{lead.name}</p>
+
+    <div className="flex items-center justify-between pt-3 border-t border-slate-50">
+      <div className="flex gap-1">
+         <span className="text-[8px] font-black uppercase tracking-tighter bg-slate-50 text-slate-400 px-1.5 py-0.5 rounded border border-slate-100">{lead.source || 'Manual'}</span>
+      </div>
+      <div className="flex items-center gap-1 text-[8px] font-bold text-slate-300 uppercase">
+         <Calendar className="w-2.5 h-2.5" />
+         {new Date(lead.createdAt).toLocaleDateString('pt-BR')}
+      </div>
+    </div>
+  </div>
+);
 
 const MasterLeads: React.FC<MasterLeadsProps> = ({ currentUser }) => {
   const [leads, setLeads] = useState<Lead[]>(dataStore.getLeads());
@@ -99,8 +77,6 @@ const MasterLeads: React.FC<MasterLeadsProps> = ({ currentUser }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [activeTab, setActiveTab] = useState<'DETAILS' | 'HISTORY' | 'TASKS'>('DETAILS');
-  const [newTaskText, setNewTaskText] = useState('');
-  const [newTaskDate, setNewTaskDate] = useState('');
 
   // Kanban Stages
   const stages: LeadStage[] = ['LEAD', 'CONTACTED', 'INTEREST', 'PROPOSAL', 'WON', 'LOST'];
@@ -154,37 +130,6 @@ const MasterLeads: React.FC<MasterLeadsProps> = ({ currentUser }) => {
       dataStore.deleteLead(selectedLead.id);
       setLeads([...dataStore.getLeads()]);
       setIsDrawerOpen(false);
-    }
-  };
-
-  // Task Handlers
-  const handleAddTask = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedLead || !newTaskText.trim()) return;
-    const updated = dataStore.addTaskToLead(selectedLead.id, newTaskText.trim(), newTaskDate || undefined);
-    if (updated) {
-      setSelectedLead(updated);
-      setLeads([...dataStore.getLeads()]);
-      setNewTaskText('');
-      setNewTaskDate('');
-    }
-  };
-
-  const handleToggleTask = (taskId: string) => {
-    if (!selectedLead) return;
-    const updated = dataStore.toggleLeadTask(selectedLead.id, taskId);
-    if (updated) {
-      setSelectedLead(updated);
-      setLeads([...dataStore.getLeads()]);
-    }
-  };
-
-  const handleDeleteTask = (taskId: string) => {
-    if (!selectedLead) return;
-    const updated = dataStore.deleteLeadTask(selectedLead.id, taskId);
-    if (updated) {
-      setSelectedLead(updated);
-      setLeads([...dataStore.getLeads()]);
     }
   };
 
@@ -287,19 +232,15 @@ const MasterLeads: React.FC<MasterLeadsProps> = ({ currentUser }) => {
 
             {/* Tabs */}
             <div className="flex px-8 border-b border-slate-50">
-              {['DETAILS', 'HISTORY', 'TASKS'].map(t => {
-                 const count = t === 'TASKS' ? selectedLead.tasks?.filter(v => !v.completed).length : 0;
-                 return (
-                  <button 
-                    key={t}
-                    onClick={() => setActiveTab(t as any)}
-                    className={`px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all flex items-center gap-2 ${activeTab === t ? 'border-primary text-primary' : 'border-transparent text-slate-300'}`}
-                  >
-                    {t === 'DETAILS' ? 'Dados Gerais' : t === 'HISTORY' ? 'Histórico' : 'Tarefas'}
-                    {count > 0 && <span className="bg-amber-500 text-white text-[8px] px-1.5 py-0.5 rounded-full">{count}</span>}
-                  </button>
-                 );
-              })}
+              {['DETAILS', 'HISTORY', 'TASKS'].map(t => (
+                <button 
+                  key={t}
+                  onClick={() => setActiveTab(t as any)}
+                  className={`px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all ${activeTab === t ? 'border-primary text-primary' : 'border-transparent text-slate-300'}`}
+                >
+                  {t === 'DETAILS' ? 'Dados Gerais' : t === 'HISTORY' ? 'Histórico' : 'Tarefas'}
+                </button>
+              ))}
             </div>
 
             {/* Content */}
@@ -400,83 +341,6 @@ const MasterLeads: React.FC<MasterLeadsProps> = ({ currentUser }) => {
                            <p className="text-sm font-medium text-slate-600 leading-relaxed">{h.text}</p>
                         </div>
                       ))}
-                   </div>
-                </div>
-              )}
-
-              {/* REQUISITO: Aba de Tarefas Funcional com Data */}
-              {activeTab === 'TASKS' && (
-                <div className="space-y-8 animate-in fade-in">
-                   <form onSubmit={handleAddTask} className="space-y-3">
-                      <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Adicionar Nova Tarefa</label>
-                      <div className="flex flex-col gap-3">
-                        <div className="flex gap-2">
-                           <input 
-                             value={newTaskText} 
-                             onChange={e => setNewTaskText(e.target.value)} 
-                             placeholder="Ex: Enviar proposta por e-mail..." 
-                             className="flex-1 p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-primary font-bold text-sm"
-                           />
-                           <button 
-                             type="submit" 
-                             disabled={!newTaskText.trim()}
-                             className="p-4 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 transition-all disabled:opacity-30"
-                           >
-                             <Plus className="w-6 h-6" />
-                           </button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                           <div className="relative flex-1">
-                              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
-                              <input 
-                                type="date" 
-                                value={newTaskDate} 
-                                onChange={e => setNewTaskDate(e.target.value)}
-                                className="w-full pl-11 p-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-primary font-bold text-xs text-slate-500"
-                              />
-                           </div>
-                           <p className="text-[9px] font-bold text-slate-400 uppercase max-w-[150px]">Opcional: Defina um prazo para alerta vermelho.</p>
-                        </div>
-                      </div>
-                   </form>
-
-                   <div className="space-y-4">
-                      <h4 className="text-[10px] font-black uppercase text-slate-300 tracking-widest">Lista de Afazeres</h4>
-                      <div className="space-y-3">
-                         {selectedLead.tasks?.length === 0 ? (
-                           <div className="py-20 text-center space-y-4 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-100">
-                             <ListTodo className="w-10 h-10 text-slate-200 mx-auto" />
-                             <p className="text-xs font-bold text-slate-300 uppercase">Nenhuma tarefa para este lead.</p>
-                           </div>
-                         ) : (
-                           selectedLead.tasks?.map(task => {
-                             const isVencida = task.dueDate && !task.completed && task.dueDate <= new Date().toISOString().split('T')[0];
-                             return (
-                               <div key={task.id} className={`group flex items-center justify-between p-4 rounded-2xl border transition-all ${task.completed ? 'bg-slate-50/50 border-slate-100 opacity-60' : 'bg-white border-slate-200 shadow-sm'}`}>
-                                  <div className="flex items-center gap-4 flex-1">
-                                     <button onClick={() => handleToggleTask(task.id)} className={`transition-colors ${task.completed ? 'text-emerald-500' : 'text-slate-300 hover:text-primary'}`}>
-                                        {task.completed ? <CheckCircle2 className="w-6 h-6" /> : <Circle className="w-6 h-6" />}
-                                     </button>
-                                     <div>
-                                        <p className={`text-sm font-bold ${task.completed ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{task.text}</p>
-                                        {task.dueDate && (
-                                           <div className={`flex items-center gap-1 text-[9px] font-black uppercase mt-0.5 ${isVencida ? 'text-red-500 animate-pulse' : 'text-slate-300'}`}>
-                                              <Clock className="w-2.5 h-2.5" /> Prazo: {new Date(task.dueDate + 'T00:00:00').toLocaleDateString('pt-BR')}
-                                           </div>
-                                        )}
-                                     </div>
-                                  </div>
-                                  <button 
-                                    onClick={() => handleDeleteTask(task.id)}
-                                    className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                                  >
-                                     <Trash2 className="w-4 h-4" />
-                                  </button>
-                               </div>
-                             );
-                           })
-                         )}
-                      </div>
                    </div>
                 </div>
               )}

@@ -14,10 +14,7 @@ import {
   Activity,
   Award,
   Clock,
-  Hash,
-  MapPin,
-  Plane,
-  Users
+  Hash
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
@@ -205,43 +202,12 @@ const Dashboard: React.FC<DashboardProps> = ({ companyId }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Widget de Origem do Público */}
-        <div className="md:col-span-1 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-6">
-           <h3 className="text-sm font-black uppercase text-slate-400 tracking-widest flex items-center gap-2">
-              <Users className="w-4 h-4 text-primary" /> Origem do Público
-           </h3>
-           <div className="space-y-6">
-              <div className="space-y-2">
-                 <div className="flex justify-between items-center text-xs font-bold text-slate-700">
-                    <span className="flex items-center gap-2"><MapPin className="w-3 h-3 text-emerald-500" /> Moradores</span>
-                    <span>{stats.customerTypeDist.local}%</span>
-                 </div>
-                 <div className="h-2 bg-slate-50 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${stats.customerTypeDist.local}%` }}></div>
-                 </div>
-              </div>
-              <div className="space-y-2">
-                 <div className="flex justify-between items-center text-xs font-bold text-slate-700">
-                    <span className="flex items-center gap-2"><Plane className="w-3 h-3 text-indigo-500" /> Turistas</span>
-                    <span>{stats.customerTypeDist.tourist}%</span>
-                 </div>
-                 <div className="h-2 bg-slate-50 rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-500 transition-all duration-1000" style={{ width: `${stats.customerTypeDist.tourist}%` }}></div>
-                 </div>
-              </div>
-           </div>
-           <p className="text-[10px] font-medium text-slate-400 leading-relaxed uppercase">
-              O seu estabelecimento é frequentado majoritariamente por <strong>{stats.customerTypeDist.local >= stats.customerTypeDist.tourist ? 'Moradores' : 'Turistas'}</strong>.
-           </p>
-        </div>
-
-        <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-           <MetricCard title="Promotores" value={stats.promoters} subValue={stats.total > 0 ? `${Math.round((stats.promoters/stats.total)*100)}% do total` : '0%'} icon={Smile} color="bg-emerald-500" trend={12} />
-           <MetricCard title="Passivos" value={stats.passives} subValue={stats.total > 0 ? `${Math.round((stats.passives/stats.total)*100)}% do total` : '0%'} icon={Meh} color="bg-amber-500" trend={-3} />
-           <MetricCard title="Detratores (Abertos)" value={stats.openDetractors} subValue="Casos urgentes" icon={Frown} color="bg-red-500" trend={8} />
-           <MetricCard title="Casos Resolvidos" value={stats.resolvedDetractors} subValue="Eficiência de gestão" icon={CheckCircle2} color="bg-blue-500" trend={24} />
-        </div>
+      {/* Main Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <MetricCard title="Promotores" value={stats.promoters} subValue={stats.total > 0 ? `${Math.round((stats.promoters/stats.total)*100)}% do total` : '0%'} icon={Smile} color="bg-emerald-500" trend={12} />
+        <MetricCard title="Passivos" value={stats.passives} subValue={stats.total > 0 ? `${Math.round((stats.passives/stats.total)*100)}% do total` : '0%'} icon={Meh} color="bg-amber-500" trend={-3} />
+        <MetricCard title="Detratores (Abertos)" value={stats.openDetractors} subValue="Casos urgentes" icon={Frown} color="bg-red-500" trend={8} />
+        <MetricCard title="Casos Resolvidos" value={stats.resolvedDetractors} subValue="Eficiência de gestão" icon={CheckCircle2} color="bg-blue-500" trend={24} />
       </div>
 
       {/* Evolution Graph */}
