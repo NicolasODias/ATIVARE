@@ -22,6 +22,7 @@ import MasterFinance from './components/MasterFinance';
 import MasterAdminPanel from './components/MasterAdminPanel';
 import PublicEvaluationLanding from './components/PublicEvaluationLanding';
 import BusinessSelector from './components/BusinessSelector';
+import BusinessRegistration from './components/BusinessRegistration';
 import Growth from './components/Growth'; // Nova Aba
 import { 
   Lock,
@@ -170,6 +171,7 @@ const App: React.FC = () => {
   const [leadSuccess, setLeadSuccess] = useState(false);
   const [leadForm, setLeadForm] = useState({ name: '', email: '', phone: '', jobTitle: '', companyName: '', companyPhone: '', city: '', employees: '1-10' });
   const [isPublicForm, setIsPublicForm] = useState(false);
+  const [isBusinessRegistration, setIsBusinessRegistration] = useState(false);
   const [trackingCodeInput, setTrackingCodeInput] = useState('');
   const [publicCompany, setPublicCompany] = useState<Company | null>(null);
   const [directChannel, setDirectChannel] = useState<FeedbackChannel | undefined>(undefined);
@@ -192,6 +194,14 @@ const App: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('c');
     const source = params.get('src');
+    const register = params.get('register');
+
+    if (register === 'business') {
+      setIsBusinessRegistration(true);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+
     if (code) {
       const company = dataStore.getCompanyByTrackingCode(code);
       if (company) { setPublicCompany(company); setIsPublicForm(true); setDirectChannel(source === 'qr' ? 'QR_CODE' : 'DIRECT_LINK'); }
@@ -291,6 +301,9 @@ const App: React.FC = () => {
   if (isPublicForm) {
     if (!publicCompany) return <PublicEvaluationLanding initialCode={trackingCodeInput} onCompanyValidated={(c) => { setPublicCompany(c); setDirectChannel('MANUAL_CODE'); }} />;
     return <FeedbackForm company={publicCompany} initialChannel={directChannel} onFinished={handleFeedbackSubmitted} onBack={() => { setIsPublicForm(false); setPublicCompany(null); setDirectChannel(undefined); }} />;
+  }
+  if (isBusinessRegistration) {
+    return <BusinessRegistration />;
   }
   if (view === 'LANDING') return <LandingPage onNavigate={() => setView('AUTH')} />;
   if (view === 'AUTH' && !user) {

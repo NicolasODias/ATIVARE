@@ -21,7 +21,8 @@ import {
   AlertTriangle,
   User as UserIcon,
   Loader2,
-  Users2
+  Users2,
+  Link
 } from 'lucide-react';
 
 const MasterClients: React.FC<{ currentUser: User }> = ({ currentUser }) => {
@@ -39,8 +40,17 @@ const MasterClients: React.FC<{ currentUser: User }> = ({ currentUser }) => {
     email: '',
     category: 'Restaurante',
     plan: 'PRO' as PlanType,
-    trackingCode: '' 
+    trackingCode: dataStore.generateUniqueTrackingCode()
   });
+
+  const [copySuccess, setCopySuccess] = useState(false);
+
+  const handleCopyLink = () => {
+    const registrationLink = `${window.location.origin}?register=business`;
+    navigator.clipboard.writeText(registrationLink);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
 
   const [userForm, setUserForm] = useState({
     name: '',
@@ -64,7 +74,7 @@ const MasterClients: React.FC<{ currentUser: User }> = ({ currentUser }) => {
   const reset = () => {
     setStep(1);
     setSuccessData(null);
-    setCompanyForm({ name: '', address: '', cnpj: '', employees: '1-10', city: '', phone: '', email: '', category: 'Restaurante', plan: 'PRO', trackingCode: '' });
+    setCompanyForm({ name: '', address: '', cnpj: '', employees: '1-10', city: '', phone: '', email: '', category: 'Restaurante', plan: 'PRO', trackingCode: dataStore.generateUniqueTrackingCode() });
     setUserForm({ name: '', email: '', phone: '', jobTitle: 'Dono', password: Math.random().toString(36).substring(2, 10) });
   };
 
@@ -131,10 +141,19 @@ const MasterClients: React.FC<{ currentUser: User }> = ({ currentUser }) => {
                <p className="text-slate-400 font-medium">Provisione uma nova conta master para um cliente contratante.</p>
             </div>
          </div>
-         <div className="flex items-center gap-2">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs transition-all ${step === 1 ? 'bg-primary text-white shadow-xl shadow-primary/30' : 'bg-emerald-500 text-white'}`}>{step > 1 ? <Check className="w-5 h-5" /> : '1'}</div>
-            <div className="w-6 h-0.5 bg-slate-100"></div>
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs transition-all ${step === 2 ? 'bg-primary text-white shadow-xl shadow-primary/30' : 'bg-slate-50 text-slate-300'}`}>2</div>
+         <div className="flex items-center gap-4">
+            <button 
+              onClick={handleCopyLink}
+              className="flex items-center gap-2 px-6 py-3 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-100 transition-all"
+            >
+               {copySuccess ? <Check className="w-4 h-4" /> : <Link className="w-4 h-4" />}
+               {copySuccess ? 'Link Copiado!' : 'Link para criar conta'}
+            </button>
+            <div className="flex items-center gap-2">
+               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs transition-all ${step === 1 ? 'bg-primary text-white shadow-xl shadow-primary/30' : 'bg-emerald-500 text-white'}`}>{step > 1 ? <Check className="w-5 h-5" /> : '1'}</div>
+               <div className="w-6 h-0.5 bg-slate-100"></div>
+               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs transition-all ${step === 2 ? 'bg-primary text-white shadow-xl shadow-primary/30' : 'bg-slate-50 text-slate-300'}`}>2</div>
+            </div>
          </div>
       </div>
 

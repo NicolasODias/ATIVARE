@@ -11,6 +11,64 @@ interface FeedbackFormProps {
   onBack?: () => void;
 }
 
+const RatingDots = ({ value, onChange, label, max = 10, isError = false }: any) => {
+  const [hover, setHover] = useState(0);
+  const activeValue = hover || value;
+
+  const getColorClass = (val: number) => {
+    if (val === 0) return 'bg-transparent';
+    if (val <= 3) return 'bg-red-500';
+    if (val <= 6) return 'bg-yellow-400';
+    return 'bg-emerald-500';
+  };
+
+  const activeColor = getColorClass(activeValue);
+
+  return (
+    <div className={`space-y-4 p-6 rounded-[2rem] transition-all border ${isError ? 'bg-red-50 border-red-200 animate-pulse' : 'bg-slate-50 border-slate-100'}`}>
+      <div className="flex justify-between items-center">
+        <label className="text-xs font-black text-slate-800 uppercase tracking-wider">{label}</label>
+        <span className={`text-xl font-black px-3 py-1 rounded-xl min-w-[3rem] text-center ${
+          activeValue === 0 ? 'text-slate-300' :
+          activeValue <= 3 ? 'text-red-600 bg-red-50' : 
+          activeValue <= 6 ? 'text-yellow-600 bg-yellow-50' : 
+          'text-emerald-600 bg-emerald-50'
+        }`}>
+          {activeValue === 0 ? '—' : activeValue}
+        </span>
+      </div>
+      <div className="flex justify-between gap-1">
+        {Array.from({ length: max }).map((_, i) => {
+          const dotValue = i + 1;
+          const isFilled = dotValue <= activeValue;
+          return (
+            <button
+              key={dotValue}
+              type="button"
+              onMouseEnter={() => setHover(dotValue)}
+              onMouseLeave={() => setHover(0)}
+              onClick={(e) => {
+                e.preventDefault(); // Extra precaution
+                onChange(dotValue);
+              }}
+              className={`
+                flex-1 h-10 rounded-full transition-all duration-200 border-2
+                ${isFilled && activeValue > 0 
+                  ? `${activeColor} border-transparent scale-105` 
+                  : 'bg-white border-slate-200 hover:border-slate-300'}
+              `}
+            />
+          );
+        })}
+      </div>
+      <div className="flex justify-between px-1 text-[8px] font-black text-slate-300 uppercase tracking-widest">
+        <span>Ruim</span>
+        <span>Excelente</span>
+      </div>
+    </div>
+  );
+};
+
 const FeedbackForm: React.FC<FeedbackFormProps> = ({ company, initialChannel, onFinished, onBack }) => {
   const [step, setStep] = useState(1);
   const [showValidation, setShowValidation] = useState(false);
@@ -111,64 +169,6 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ company, initialChannel, on
       ...formData,
       internalResponses: { ...formData.internalResponses, [qId]: value }
     });
-  };
-
-  const RatingDots = ({ value, onChange, label, max = 10, isError = false }: any) => {
-    const [hover, setHover] = useState(0);
-    const activeValue = hover || value;
-
-    const getColorClass = (val: number) => {
-      if (val === 0) return 'bg-transparent';
-      if (val <= 3) return 'bg-red-500';
-      if (val <= 6) return 'bg-yellow-400';
-      return 'bg-emerald-500';
-    };
-
-    const activeColor = getColorClass(activeValue);
-
-    return (
-      <div className={`space-y-4 p-6 rounded-[2rem] transition-all border ${isError ? 'bg-red-50 border-red-200 animate-pulse' : 'bg-slate-50 border-slate-100'}`}>
-        <div className="flex justify-between items-center">
-          <label className="text-xs font-black text-slate-800 uppercase tracking-wider">{label}</label>
-          <span className={`text-xl font-black px-3 py-1 rounded-xl min-w-[3rem] text-center ${
-            activeValue === 0 ? 'text-slate-300' :
-            activeValue <= 3 ? 'text-red-600 bg-red-50' : 
-            activeValue <= 6 ? 'text-yellow-600 bg-yellow-50' : 
-            'text-emerald-600 bg-emerald-50'
-          }`}>
-            {activeValue === 0 ? '—' : activeValue}
-          </span>
-        </div>
-        <div className="flex justify-between gap-1">
-          {Array.from({ length: max }).map((_, i) => {
-            const dotValue = i + 1;
-            const isFilled = dotValue <= activeValue;
-            return (
-              <button
-                key={dotValue}
-                type="button"
-                onMouseEnter={() => setHover(dotValue)}
-                onMouseLeave={() => setHover(0)}
-                onClick={() => {
-                  onChange(dotValue);
-                  setShowValidation(false);
-                }}
-                className={`
-                  flex-1 h-10 rounded-full transition-all duration-200 border-2
-                  ${isFilled && activeValue > 0 
-                    ? `${activeColor} border-transparent scale-105` 
-                    : 'bg-white border-slate-200 hover:border-slate-300'}
-                `}
-              />
-            );
-          })}
-        </div>
-        <div className="flex justify-between px-1 text-[8px] font-black text-slate-300 uppercase tracking-widest">
-          <span>Ruim</span>
-          <span>Excelente</span>
-        </div>
-      </div>
-    );
   };
 
   if (submitted) {
@@ -367,25 +367,37 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ company, initialChannel, on
                   <RatingDots 
                     label="Qualidade do Serviço" 
                     value={formData.service} 
-                    onChange={(v: number) => setFormData({...formData, service: v})} 
+                    onChange={(v: number) => {
+                      setFormData(prev => ({...prev, service: v}));
+                      setShowValidation(false);
+                    }} 
                     isError={showValidation && formData.service === 0}
                   />
                   <RatingDots 
                     label="Qualidade da Comida" 
                     value={formData.food} 
-                    onChange={(v: number) => setFormData({...formData, food: v})} 
+                    onChange={(v: number) => {
+                      setFormData(prev => ({...prev, food: v}));
+                      setShowValidation(false);
+                    }} 
                     isError={showValidation && formData.food === 0}
                   />
                   <RatingDots 
                     label="Qualidade das Bebidas" 
                     value={formData.drinks} 
-                    onChange={(v: number) => setFormData({...formData, drinks: v})} 
+                    onChange={(v: number) => {
+                      setFormData(prev => ({...prev, drinks: v}));
+                      setShowValidation(false);
+                    }} 
                     isError={showValidation && formData.drinks === 0}
                   />
                   <RatingDots 
                     label="Estrutura e Ambiente" 
                     value={formData.structure} 
-                    onChange={(v: number) => setFormData({...formData, structure: v})} 
+                    onChange={(v: number) => {
+                      setFormData(prev => ({...prev, structure: v}));
+                      setShowValidation(false);
+                    }} 
                     isError={showValidation && formData.structure === 0}
                   />
                 </div>

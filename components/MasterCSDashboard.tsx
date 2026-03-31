@@ -84,16 +84,18 @@ const MasterCSDashboard: React.FC = () => {
                  <BrainCircuit className="w-6 h-6 text-accent" />
                  <h3 className="text-xl font-black">CS Insights (IA)</h3>
               </div>
-              <p className="text-white/50 text-sm leading-relaxed">Padrão detectado: 45% das reclamações globais citam "Tempo de Espera". Sugerimos disparar material educativo sobre gestão de fila.</p>
+              <p className="text-white/50 text-sm leading-relaxed">
+                {stats.totalEvaluations > 0 
+                  ? "Analisando padrões de comportamento e feedback para gerar insights estratégicos."
+                  : "Aguardando dados suficientes para gerar insights automáticos via IA."}
+              </p>
            </div>
            
            <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
               <p className="text-[10px] font-black uppercase text-white/30 tracking-widest mb-3">Principais Atritos</p>
               <div className="space-y-2">
-                 <div className="flex justify-between text-xs font-bold"><span className="text-white/70">Espera</span><span>45%</span></div>
-                 <div className="h-1 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-accent w-[45%]"></div></div>
-                 <div className="flex justify-between text-xs font-bold pt-1"><span className="text-white/70">Limpeza</span><span>12%</span></div>
-                 <div className="h-1 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-white/40 w-[12%]"></div></div>
+                 <div className="flex justify-between text-xs font-bold"><span className="text-white/70">Nenhum atrito detectado</span><span>0%</span></div>
+                 <div className="h-1 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-accent w-0"></div></div>
               </div>
            </div>
         </div>

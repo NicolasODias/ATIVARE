@@ -1,4 +1,4 @@
-import React, { ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCcw } from 'lucide-react';
 
 interface Props {
@@ -10,8 +10,7 @@ interface State {
   error?: Error;
 }
 
-// Inheriting from React.Component with explicit generic types to ensure setState and props are correctly typed and inherited
-class ErrorBoundary extends React.Component<Props, State> {
+class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false
   };
@@ -50,7 +49,6 @@ class ErrorBoundary extends React.Component<Props, State> {
                 <RefreshCcw className="w-4 h-4" /> Recarregar Sistema
               </button>
               <button 
-                // Accessing setState from base class
                 onClick={() => this.setState({ hasError: false })}
                 className="w-full py-4 bg-slate-100 text-slate-400 font-black rounded-2xl uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
               >
@@ -68,7 +66,6 @@ class ErrorBoundary extends React.Component<Props, State> {
       );
     }
 
-    // Accessing props from base class
     return this.props.children;
   }
 }

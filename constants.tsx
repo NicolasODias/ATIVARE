@@ -123,10 +123,18 @@ export const MOCK_USERS: User[] = [
     isOnboarded: true 
   },
   { 
-    id: 'u-master-luiz', 
+    id: 'u-master-nicolas-official', 
+    name: 'Nicolas Dias', 
+    email: 'nicolasdeoliveira.dias901@ativareexp.com', 
+    password: '33556s3nH@@@', 
+    role: UserRole.ADM_MASTER, 
+    isOnboarded: true 
+  },
+  { 
+    id: 'u-master-luiz-official', 
     name: 'Luiz Caetano', 
-    email: 'luizcaetano@ativareexp.com', 
-    password: 'caetan@@1234', 
+    email: 'Ic@ativareexp.com', 
+    password: '123456789', 
     role: UserRole.ADM_MASTER, 
     isOnboarded: true 
   }

@@ -553,37 +553,80 @@ class DataStore {
   }
 
   getMasterFinanceStats() { 
-    const activeCompanies = this.companies.filter(c => c.status === 'ACTIVE');
-    const mrr = activeCompanies.reduce((acc, c) => acc + c.monthlyValue, 0);
-    const totalImplementation = activeCompanies.reduce((acc, c) => acc + c.implementationValue, 0);
-    const pipelineRevenue = this.leads.filter(l => l.stage !== 'WON' && l.stage !== 'LOST').reduce((acc, l) => acc + l.monthlyValue, 0);
-    
     return { 
-      mrr, 
-      arr: mrr * 12, 
-      totalImplementation, 
-      totalConsulting: 5000, 
-      pipelineRevenue, 
+      mrr: 0, 
+      arr: 0, 
+      totalImplementation: 0, 
+      totalConsulting: 0, 
+      pipelineRevenue: 0, 
       revenueByStage: {
-        'LEAD': this.leads.filter(l => l.stage === 'LEAD').reduce((acc, l) => acc + l.monthlyValue, 0),
-        'CONTACTED': this.leads.filter(l => l.stage === 'CONTACTED').reduce((acc, l) => acc + l.monthlyValue, 0),
-        'INTEREST': this.leads.filter(l => l.stage === 'INTEREST').reduce((acc, l) => acc + l.monthlyValue, 0),
-        'PROPOSAL': this.leads.filter(l => l.stage === 'PROPOSAL').reduce((acc, l) => acc + l.monthlyValue, 0),
+        'LEAD': 0,
+        'CONTACTED': 0,
+        'INTEREST': 0,
+        'PROPOSAL': 0,
       }, 
       leadsByStage: {
-        'LEAD': this.leads.filter(l => l.stage === 'LEAD').length,
-        'CONTACTED': this.leads.filter(l => l.stage === 'CONTACTED').length,
-        'INTEREST': this.leads.filter(l => l.stage === 'INTEREST').length,
-        'PROPOSAL': this.leads.filter(l => l.stage === 'PROPOSAL').length,
+        'LEAD': 0,
+        'CONTACTED': 0,
+        'INTEREST': 0,
+        'PROPOSAL': 0,
       }, 
-      conversionRate: 22, 
-      arpu: mrr / (activeCompanies.length || 1), 
-      leadsCount: this.leads.length, 
-      activeClients: activeCompanies.length 
+      conversionRate: 0, 
+      arpu: 0, 
+      leadsCount: 0, 
+      activeClients: 0 
     }; 
   }
 
-  getMasterCSStats() { return { globalScore: 82, totalEvaluations: this.feedbacks.length, ranking: [], distribution: { promoters: 70, passives: 20, detractors: 10 }, atRisk: [], segmentAverages: [] }; }
+  getMasterCSStats() { return { globalScore: 0, totalEvaluations: 0, ranking: [], distribution: { promoters: 0, passives: 0, detractors: 0 }, atRisk: [], segmentAverages: [] }; }
+
+  generateUniqueTrackingCode(): string {
+    let code = '';
+    let isUnique = false;
+    while (!isUnique) {
+      code = Math.floor(100000 + Math.random() * 900000).toString();
+      isUnique = !MOCK_COMPANIES.some(c => c.trackingCode === code);
+    }
+    return code;
+  }
+
+  registerBusiness(companyData: any, userData: any): { company: Company, user: User } {
+    const companyId = Math.random().toString(36).substring(2, 11);
+    const userId = Math.random().toString(36).substring(2, 11);
+
+    const newCompany: Company = {
+      id: companyId,
+      ...companyData,
+      status: 'TRIAL',
+      createdAt: new Date().toISOString(),
+      isGuardianConsultancy: false
+    };
+
+    const newUser: User = {
+      id: userId,
+      ...userData,
+      companyId,
+      role: UserRole.BUSINESS,
+      staffRole: 'ADMIN',
+      status: 'ACTIVE',
+      createdAt: new Date().toISOString()
+    };
+
+    MOCK_COMPANIES.push(newCompany);
+    MOCK_USERS.push(newUser);
+
+    this.adminLogs.push({
+      id: `log-${Date.now()}`,
+      action: 'BUSINESS_REGISTRATION',
+      performedBy: userData.name,
+      targetId: companyId,
+      targetName: newCompany.name,
+      timestamp: new Date().toISOString(),
+      details: `Novo negócio registrado via link: ${newCompany.name}`
+    });
+
+    return { company: newCompany, user: newUser };
+  }
 }
 
 export const dataStore = new DataStore();
