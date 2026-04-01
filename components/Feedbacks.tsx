@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { dataStore } from '../services/dataStore';
-import { Feedback, NPSCategory, User, Case, InternalQuestion } from '../types';
+import { Feedback, NPSCategory, User, Case, InternalQuestion, FeedbackChannel } from '../types';
 import { 
   Search, 
   ChevronRight, 
@@ -22,7 +22,11 @@ import {
   AlertCircle,
   Send,
   QrCode,
-  ShieldCheck
+  ShieldCheck,
+  Download,
+  Filter,
+  Link as LinkIcon,
+  Type as TypeIcon
 } from 'lucide-react';
 
 interface FeedbacksProps {
@@ -33,6 +37,7 @@ interface FeedbacksProps {
 const Feedbacks: React.FC<FeedbacksProps> = ({ companyId, currentUser }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<NPSCategory | 'ALL'>('ALL');
+  const [channelFilter, setChannelFilter] = useState<FeedbackChannel | 'ALL'>('ALL');
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -43,7 +48,6 @@ const Feedbacks: React.FC<FeedbacksProps> = ({ companyId, currentUser }) => {
   const feedbacks = useMemo(() => dataStore.getFeedbacks(companyId), [companyId, selectedFeedback]);
   const company = useMemo(() => dataStore.getCompany(companyId), [companyId]);
   
-  // Perguntas internas para staff (não públicas)
   const staffQuestions = useMemo(() => 
     dataStore.getInternalQuestions(companyId, false).filter(q => !q.isPublic && q.active), 
   [companyId]);
@@ -53,16 +57,23 @@ const Feedbacks: React.FC<FeedbacksProps> = ({ companyId, currentUser }) => {
       .filter(f => {
         const matchesSearch = f.customerName.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = categoryFilter === 'ALL' || f.category === categoryFilter;
-        return matchesSearch && matchesCategory;
+        const matchesChannel = channelFilter === 'ALL' || f.channel === channelFilter;
+        return matchesSearch && matchesCategory && matchesChannel;
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [feedbacks, searchTerm, categoryFilter]);
+  }, [feedbacks, searchTerm, categoryFilter, channelFilter]);
 
   const currentCase = selectedFeedback ? dataStore.getCaseForFeedback(selectedFeedback.id) : null;
 
   const getEvaluationLink = () => {
     if (!company) return '';
-    return `${window.location.origin}/avaliar/${company.trackingCode}`;
+    return `${window.location.origin}/?c=${company.trackingCode}`;
+  };
+
+  const getQRCodeUrl = () => {
+    if (!company) return '';
+    const directLink = `${getEvaluationLink()}&src=qr`;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(directLink)}`;
   };
 
   const handleCopyLink = () => {
@@ -116,6 +127,23 @@ const Feedbacks: React.FC<FeedbacksProps> = ({ companyId, currentUser }) => {
     );
   };
 
+  const ChannelBadge = ({ channel }: { channel?: FeedbackChannel }) => {
+    const configs = {
+      QR_CODE: { label: 'QR Code', icon: QrCode, style: 'bg-indigo-50 text-indigo-500 border-indigo-100' },
+      DIRECT_LINK: { label: 'Link Direto', icon: LinkIcon, style: 'bg-emerald-50 text-emerald-500 border-emerald-100' },
+      MANUAL_CODE: { label: 'Código Manual', icon: TypeIcon, style: 'bg-slate-50 text-slate-500 border-slate-100' }
+    };
+    
+    const config = channel ? configs[channel] : configs.MANUAL_CODE;
+    const Icon = config.icon;
+
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-tight border ${config.style}`}>
+        <Icon className="w-3 h-3" /> {config.label}
+      </span>
+    );
+  };
+
   const RatingDotsView = ({ label, value, max = 10, onChange }: any) => {
     const getColorClass = (val: number) => {
       if (val === 0) return 'bg-slate-100';
@@ -148,7 +176,7 @@ const Feedbacks: React.FC<FeedbacksProps> = ({ companyId, currentUser }) => {
 
   return (
     <div className="space-y-6 relative h-full">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <div className="flex flex-1 w-full md:max-w-md bg-white rounded-2xl border border-slate-200 px-4 py-2.5 items-center space-x-3 shadow-sm focus-within:border-primary transition-all">
           <Search className="w-5 h-5 text-slate-400" />
           <input 
@@ -160,24 +188,41 @@ const Feedbacks: React.FC<FeedbacksProps> = ({ companyId, currentUser }) => {
           />
         </div>
 
-        <div className="flex items-center space-x-3 w-full md:w-auto">
-          <select 
-            className="bg-white border border-slate-200 rounded-2xl px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-primary shadow-sm"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value as any)}
-          >
-            <option value="ALL">Todas Categorias</option>
-            <option value="PROMOTER">Promotores</option>
-            <option value="PASSIVE">Passivos</option>
-            <option value="DETRACTOR">Detratores</option>
-          </select>
+        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-2xl px-3 py-1.5 shadow-sm">
+             <Filter className="w-3.5 h-3.5 text-slate-400" />
+             <select 
+               className="bg-transparent text-xs font-bold text-slate-700 outline-none"
+               value={categoryFilter}
+               onChange={(e) => setCategoryFilter(e.target.value as any)}
+             >
+               <option value="ALL">Todos os Humores</option>
+               <option value="PROMOTER">Promotores</option>
+               <option value="PASSIVE">Passivos</option>
+               <option value="DETRACTOR">Detratores</option>
+             </select>
+          </div>
+
+          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-2xl px-3 py-1.5 shadow-sm">
+             <Share2 className="w-3.5 h-3.5 text-slate-400" />
+             <select 
+               className="bg-transparent text-xs font-bold text-slate-700 outline-none"
+               value={channelFilter}
+               onChange={(e) => setChannelFilter(e.target.value as any)}
+             >
+               <option value="ALL">Todos os Canais</option>
+               <option value="QR_CODE">Apenas QR Code</option>
+               <option value="DIRECT_LINK">Apenas Link Direto</option>
+               <option value="MANUAL_CODE">Apenas Manual</option>
+             </select>
+          </div>
 
           <button 
             onClick={() => setShowShareModal(true)}
-            className="flex items-center space-x-2 bg-accent hover:bg-[#e65d00] text-white px-5 py-2.5 rounded-2xl font-bold shadow-lg shadow-accent/20 transition-all"
+            className="flex items-center space-x-2 bg-accent hover:bg-[#e65d00] text-white px-5 py-2.5 rounded-2xl font-bold shadow-lg shadow-accent/20 transition-all ml-auto xl:ml-0"
           >
-            <Share2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Gerar Link</span>
+            <ExternalLink className="w-4 h-4" />
+            <span className="hidden sm:inline">Gerar Divulgação</span>
           </button>
         </div>
       </div>
@@ -189,15 +234,15 @@ const Feedbacks: React.FC<FeedbacksProps> = ({ companyId, currentUser }) => {
               <tr className="bg-slate-50/50 border-b border-slate-100">
                 <th className="px-8 py-5 text-[11px] font-black uppercase text-slate-400 tracking-widest">Data</th>
                 <th className="px-8 py-5 text-[11px] font-black uppercase text-slate-400 tracking-widest">Cliente</th>
-                <th className="px-8 py-5 text-[11px] font-black uppercase text-slate-400 tracking-widest text-center">Score Médio</th>
-                <th className="px-8 py-5 text-[11px] font-black uppercase text-slate-400 tracking-widest text-center">NPS</th>
-                <th className="px-8 py-5 text-[11px] font-black uppercase text-slate-400 tracking-widest text-right">Ações</th>
+                <th className="px-8 py-5 text-[11px] font-black uppercase text-slate-400 tracking-widest text-center">Score</th>
+                <th className="px-8 py-5 text-[11px] font-black uppercase text-slate-400 tracking-widest text-center">Origem (Canal)</th>
+                <th className="px-8 py-5 text-[11px] font-black uppercase text-slate-400 tracking-widest text-right">Ação</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {filteredFeedbacks.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-8 py-20 text-center text-slate-400 font-medium">Nenhuma avaliação encontrada.</td>
+                  <td colSpan={5} className="px-8 py-20 text-center text-slate-400 font-medium">Nenhuma avaliação encontrada para os filtros aplicados.</td>
                 </tr>
               ) : (
                 filteredFeedbacks.map((f) => (
@@ -229,7 +274,7 @@ const Feedbacks: React.FC<FeedbacksProps> = ({ companyId, currentUser }) => {
                       </span>
                     </td>
                     <td className="px-8 py-5 text-center">
-                      <CategoryTag category={f.category} />
+                       <ChannelBadge channel={f.channel} />
                     </td>
                     <td className="px-8 py-5 text-right">
                       <button className="p-2 text-slate-300 group-hover:text-primary transition-colors">
@@ -258,7 +303,7 @@ const Feedbacks: React.FC<FeedbacksProps> = ({ companyId, currentUser }) => {
                   <h3 className="text-xl font-black text-slate-900">{selectedFeedback.customerName}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <CategoryTag category={selectedFeedback.category} />
-                    <span className="text-xs font-bold text-slate-400">• Avaliado em {new Date(selectedFeedback.createdAt).toLocaleDateString('pt-BR')}</span>
+                    <span className="text-xs font-bold text-slate-400">• Avaliado via <span className="text-primary">{selectedFeedback.channel?.replace('_', ' ') || 'Portal'}</span></span>
                   </div>
                 </div>
               </div>
@@ -300,6 +345,7 @@ const Feedbacks: React.FC<FeedbacksProps> = ({ companyId, currentUser }) => {
                     <span className="text-3xl font-black">{selectedFeedback.averageScore.toFixed(1)}</span>
                   </div>
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Score de Experiência</p>
+                  <div className="mt-2"><ChannelBadge channel={selectedFeedback.channel} /></div>
                 </div>
               </div>
 
@@ -481,37 +527,73 @@ const Feedbacks: React.FC<FeedbacksProps> = ({ companyId, currentUser }) => {
       {showShareModal && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowShareModal(false)}></div>
-          <div className="bg-white rounded-[40px] w-full max-w-md p-10 relative z-10 shadow-2xl border border-white animate-in zoom-in duration-300">
-            <div className="w-20 h-20 bg-accent/10 text-accent rounded-3xl flex items-center justify-center mx-auto mb-6">
-              <QrCode className="w-10 h-10" />
-            </div>
-            <h3 className="text-2xl font-black text-center text-slate-900 mb-2">Divulgue sua Experiência</h3>
-            <p className="text-center text-slate-500 text-sm font-medium mb-8">Seu código de rastreamento exclusivo é <span className="text-primary font-black">{company?.trackingCode}</span></p>
-            
-            <div className="space-y-4">
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center justify-between">
-                <code className="text-[10px] font-bold text-slate-400 overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px]">
-                  {getEvaluationLink()}
-                </code>
-                <button 
-                  onClick={handleCopyLink}
-                  className={`p-2 rounded-xl transition-all ${copied ? 'bg-emerald-500 text-white' : 'bg-white text-slate-400 hover:text-primary shadow-sm'}`}
-                >
-                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                </button>
-              </div>
-              
-              <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 flex flex-col items-center">
-                <p className="text-[10px] font-black uppercase text-slate-400 mb-4">Acesso via Código Público</p>
-                <div className="text-3xl font-black tracking-[0.2em] text-primary">{company?.trackingCode}</div>
-              </div>
+          <div className="bg-white rounded-[40px] w-full max-w-xl p-10 relative z-10 shadow-2xl border border-white animate-in zoom-in duration-300">
+            <button 
+              onClick={() => setShowShareModal(false)}
+              className="absolute top-8 right-8 p-2 text-slate-300 hover:text-slate-600 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
 
-              <button 
-                onClick={() => setShowShareModal(false)}
-                className="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-lg hover:shadow-primary/30 transition-all"
-              >
-                Entendido
-              </button>
+            <div className="text-center space-y-6">
+              <div className="w-20 h-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto shadow-inner">
+                <QrCode className="w-10 h-10" />
+              </div>
+              <h3 className="text-3xl font-black text-slate-900 tracking-tight">Avaliação Direta</h3>
+              <p className="text-slate-500 text-sm font-medium">Divulgue o acesso direto ao seu formulário, pulando a etapa de digitação do código.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
+               {/* QR Code Section */}
+               <div className="space-y-4 text-center">
+                  <div className="p-4 bg-slate-50 rounded-[2.5rem] border border-slate-100 flex flex-col items-center">
+                    <img src={getQRCodeUrl()} alt="QR Code de Avaliação" className="w-48 h-48 mix-blend-multiply" />
+                    <p className="text-[10px] font-black uppercase text-slate-400 mt-2">QR Code Inteligente</p>
+                  </div>
+                  <button 
+                    onClick={() => window.open(getQRCodeUrl(), '_blank')}
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 hover:scale-105 transition-all"
+                  >
+                    <Download className="w-4 h-4" /> Baixar QR Code
+                  </button>
+               </div>
+
+               {/* Link Section */}
+               <div className="space-y-6 flex flex-col justify-center">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Link Direto (WhatsApp/Redes)</label>
+                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center justify-between">
+                      <code className="text-[10px] font-bold text-slate-400 overflow-hidden text-ellipsis whitespace-nowrap">
+                        {getEvaluationLink()}
+                      </code>
+                      <button 
+                        onClick={handleCopyLink}
+                        className={`p-2 rounded-xl transition-all ${copied ? 'bg-emerald-500 text-white shadow-md' : 'bg-white text-slate-400 hover:text-primary shadow-sm'}`}
+                      >
+                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-6 bg-primary/5 rounded-[2rem] border border-primary/10">
+                    <div className="flex items-center gap-2 mb-2 text-primary">
+                      <ShieldCheck className="w-4 h-4" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Acesso Automatizado</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 font-bold leading-relaxed uppercase">
+                      Este link identifica sua unidade "{company?.name}" automaticamente e registra a origem da avaliação para seus relatórios de BI.
+                    </p>
+                  </div>
+               </div>
+            </div>
+
+            <div className="mt-10 pt-8 border-t border-slate-50">
+               <button 
+                 onClick={() => setShowShareModal(false)}
+                 className="w-full py-4 bg-slate-100 text-slate-400 font-black rounded-3xl uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all"
+               >
+                 Fechar Painel de Compartilhamento
+               </button>
             </div>
           </div>
         </div>

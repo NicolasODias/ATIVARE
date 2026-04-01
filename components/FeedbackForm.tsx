@@ -1,16 +1,75 @@
 
 import React, { useState, useMemo } from 'react';
-import { Company, InternalQuestion, Feedback } from '../types';
+import { Company, InternalQuestion, Feedback, FeedbackChannel } from '../types';
 import { dataStore } from '../services/dataStore';
-import { ChevronRight, ChevronLeft, Send, CheckCircle2, AlertCircle, LogOut, Award, ShieldCheck, Star } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Send, CheckCircle2, AlertCircle, LogOut, Award, ShieldCheck, Star, Mail, Calendar, MapPin, Plane } from 'lucide-react';
 
 interface FeedbackFormProps {
   company: Company;
+  initialChannel?: FeedbackChannel;
   onFinished: () => void;
   onBack?: () => void;
 }
 
-const FeedbackForm: React.FC<FeedbackFormProps> = ({ company, onFinished, onBack }) => {
+const RatingDots = ({ value, onChange, label, max = 10, isError = false }: any) => {
+  const [hover, setHover] = useState(0);
+  const activeValue = hover || value;
+
+  const getColorClass = (val: number) => {
+    if (val === 0) return 'bg-transparent';
+    if (val <= 3) return 'bg-red-500';
+    if (val <= 6) return 'bg-yellow-400';
+    return 'bg-emerald-500';
+  };
+
+  const activeColor = getColorClass(activeValue);
+
+  return (
+    <div className={`space-y-4 p-6 rounded-[2rem] transition-all border ${isError ? 'bg-red-50 border-red-200 animate-pulse' : 'bg-slate-50 border-slate-100'}`}>
+      <div className="flex justify-between items-center">
+        <label className="text-xs font-black text-slate-800 uppercase tracking-wider">{label}</label>
+        <span className={`text-xl font-black px-3 py-1 rounded-xl min-w-[3rem] text-center ${
+          activeValue === 0 ? 'text-slate-300' :
+          activeValue <= 3 ? 'text-red-600 bg-red-50' : 
+          activeValue <= 6 ? 'text-yellow-600 bg-yellow-50' : 
+          'text-emerald-600 bg-emerald-50'
+        }`}>
+          {activeValue === 0 ? '—' : activeValue}
+        </span>
+      </div>
+      <div className="flex justify-between gap-1">
+        {Array.from({ length: max }).map((_, i) => {
+          const dotValue = i + 1;
+          const isFilled = dotValue <= activeValue;
+          return (
+            <button
+              key={dotValue}
+              type="button"
+              onMouseEnter={() => setHover(dotValue)}
+              onMouseLeave={() => setHover(0)}
+              onClick={(e) => {
+                e.preventDefault(); // Extra precaution
+                onChange(dotValue);
+              }}
+              className={`
+                flex-1 h-10 rounded-full transition-all duration-200 border-2
+                ${isFilled && activeValue > 0 
+                  ? `${activeColor} border-transparent scale-105` 
+                  : 'bg-white border-slate-200 hover:border-slate-300'}
+              `}
+            />
+          );
+        })}
+      </div>
+      <div className="flex justify-between px-1 text-[8px] font-black text-slate-300 uppercase tracking-widest">
+        <span>Ruim</span>
+        <span>Excelente</span>
+      </div>
+    </div>
+  );
+};
+
+const FeedbackForm: React.FC<FeedbackFormProps> = ({ company, initialChannel, onFinished, onBack }) => {
   const [step, setStep] = useState(1);
   const [showValidation, setShowValidation] = useState(false);
   
@@ -24,18 +83,25 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ company, onFinished, onBack
     surname: '',
     phone: '',
     email: '',
+    birthDate: '',
     howKnown: '',
     service: 0, 
     food: 0,    
     drinks: 0,  
     structure: 0, 
     profile: 'family' as any,
+    customerType: 'local' as 'local' | 'tourist',
     observation: '',
     internalResponses: {} as any
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const isStep1Valid = formData.name.trim() !== '' && formData.surname.trim() !== '' && formData.phone.trim() !== '';
+  const isStep1Valid = 
+    formData.name.trim() !== '' && 
+    formData.surname.trim() !== '' && 
+    formData.phone.trim() !== '' &&
+    formData.email.trim() !== '' &&
+    formData.birthDate !== '';
 
   const isStep2Valid = useMemo(() => {
     const coreRatingsDone = formData.service > 0 && formData.food > 0 && formData.drinks > 0 && formData.structure > 0;
@@ -79,7 +145,9 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ company, onFinished, onBack
       customerId: '', 
       customerName: `${formData.name} ${formData.surname}`,
       customerPhone: formData.phone,
+      customerBirthDate: formData.birthDate,
       howKnown: formData.howKnown,
+      channel: initialChannel || 'DIRECT_LINK', // Define o canal
       scores: {
         service: formData.service,
         food: formData.food,
@@ -88,6 +156,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ company, onFinished, onBack
       },
       internalResponses: formData.internalResponses,
       profile: formData.profile,
+      customerType: formData.customerType,
       observation: formData.observation,
       email: formData.email
     });
@@ -100,64 +169,6 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ company, onFinished, onBack
       ...formData,
       internalResponses: { ...formData.internalResponses, [qId]: value }
     });
-  };
-
-  const RatingDots = ({ value, onChange, label, max = 10, isError = false }: any) => {
-    const [hover, setHover] = useState(0);
-    const activeValue = hover || value;
-
-    const getColorClass = (val: number) => {
-      if (val === 0) return 'bg-transparent';
-      if (val <= 3) return 'bg-red-500';
-      if (val <= 6) return 'bg-yellow-400';
-      return 'bg-emerald-500';
-    };
-
-    const activeColor = getColorClass(activeValue);
-
-    return (
-      <div className={`space-y-4 p-6 rounded-[2rem] transition-all border ${isError ? 'bg-red-50 border-red-200 animate-pulse' : 'bg-slate-50 border-slate-100'}`}>
-        <div className="flex justify-between items-center">
-          <label className="text-xs font-black text-slate-800 uppercase tracking-wider">{label}</label>
-          <span className={`text-xl font-black px-3 py-1 rounded-xl min-w-[3rem] text-center ${
-            activeValue === 0 ? 'text-slate-300' :
-            activeValue <= 3 ? 'text-red-600 bg-red-50' : 
-            activeValue <= 6 ? 'text-yellow-600 bg-yellow-50' : 
-            'text-emerald-600 bg-emerald-50'
-          }`}>
-            {activeValue === 0 ? '—' : activeValue}
-          </span>
-        </div>
-        <div className="flex justify-between gap-1">
-          {Array.from({ length: max }).map((_, i) => {
-            const dotValue = i + 1;
-            const isFilled = dotValue <= activeValue;
-            return (
-              <button
-                key={dotValue}
-                type="button"
-                onMouseEnter={() => setHover(dotValue)}
-                onMouseLeave={() => setHover(0)}
-                onClick={() => {
-                  onChange(dotValue);
-                  setShowValidation(false);
-                }}
-                className={`
-                  flex-1 h-10 rounded-full transition-all duration-200 border-2
-                  ${isFilled && activeValue > 0 
-                    ? `${activeColor} border-transparent scale-105` 
-                    : 'bg-white border-slate-200 hover:border-slate-300'}
-                `}
-              />
-            );
-          })}
-        </div>
-        <div className="flex justify-between px-1 text-[8px] font-black text-slate-300 uppercase tracking-widest">
-          <span>Ruim</span>
-          <span>Excelente</span>
-        </div>
-      </div>
-    );
   };
 
   if (submitted) {
@@ -231,16 +242,75 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ company, onFinished, onBack
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">WhatsApp *</label>
+                    <input 
+                      required
+                      type="tel" 
+                      placeholder="(00) 00000-0000"
+                      className={`w-full p-5 bg-slate-50 border rounded-3xl outline-none focus:border-primary font-bold text-slate-900 transition-all ${showValidation && !formData.phone ? 'border-red-300 ring-4 ring-red-50' : 'border-slate-100'}`}
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Data de Nascimento *</label>
+                    <div className="relative">
+                      <input 
+                        required
+                        type="date" 
+                        className={`w-full p-5 bg-slate-50 border rounded-3xl outline-none focus:border-primary font-bold text-slate-900 transition-all ${showValidation && !formData.birthDate ? 'border-red-300 ring-4 ring-red-50' : 'border-slate-100'}`}
+                        value={formData.birthDate}
+                        onChange={(e) => setFormData({...formData, birthDate: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">WhatsApp *</label>
-                  <input 
-                    required
-                    type="tel" 
-                    placeholder="(00) 00000-0000"
-                    className={`w-full p-5 bg-slate-50 border rounded-3xl outline-none focus:border-primary font-bold text-slate-900 transition-all ${showValidation && !formData.phone ? 'border-red-300 ring-4 ring-red-50' : 'border-slate-100'}`}
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  />
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">E-mail de Contato *</label>
+                  <div className="relative">
+                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                    <input 
+                      required
+                      type="email" 
+                      placeholder="seu@email.com"
+                      className={`w-full pl-14 p-5 bg-slate-50 border rounded-3xl outline-none focus:border-primary font-bold text-slate-900 transition-all ${showValidation && !formData.email ? 'border-red-300 ring-4 ring-red-50' : 'border-slate-100'}`}
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Qual a sua origem?</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, customerType: 'local'})}
+                      className={`p-5 rounded-[2rem] border-2 font-black text-[10px] uppercase tracking-widest transition-all flex flex-col items-center gap-2 ${
+                        formData.customerType === 'local' 
+                          ? 'bg-primary border-primary text-white shadow-xl' 
+                          : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'
+                      }`}
+                    >
+                      <MapPin className="w-5 h-5" />
+                      Morador Local
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, customerType: 'tourist'})}
+                      className={`p-5 rounded-[2rem] border-2 font-black text-[10px] uppercase tracking-widest transition-all flex flex-col items-center gap-2 ${
+                        formData.customerType === 'tourist' 
+                          ? 'bg-primary border-primary text-white shadow-xl' 
+                          : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'
+                      }`}
+                    >
+                      <Plane className="w-5 h-5" />
+                      Turista / Visitante
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -297,25 +367,37 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ company, onFinished, onBack
                   <RatingDots 
                     label="Qualidade do Serviço" 
                     value={formData.service} 
-                    onChange={(v: number) => setFormData({...formData, service: v})} 
+                    onChange={(v: number) => {
+                      setFormData(prev => ({...prev, service: v}));
+                      setShowValidation(false);
+                    }} 
                     isError={showValidation && formData.service === 0}
                   />
                   <RatingDots 
                     label="Qualidade da Comida" 
                     value={formData.food} 
-                    onChange={(v: number) => setFormData({...formData, food: v})} 
+                    onChange={(v: number) => {
+                      setFormData(prev => ({...prev, food: v}));
+                      setShowValidation(false);
+                    }} 
                     isError={showValidation && formData.food === 0}
                   />
                   <RatingDots 
                     label="Qualidade das Bebidas" 
                     value={formData.drinks} 
-                    onChange={(v: number) => setFormData({...formData, drinks: v})} 
+                    onChange={(v: number) => {
+                      setFormData(prev => ({...prev, drinks: v}));
+                      setShowValidation(false);
+                    }} 
                     isError={showValidation && formData.drinks === 0}
                   />
                   <RatingDots 
                     label="Estrutura e Ambiente" 
                     value={formData.structure} 
-                    onChange={(v: number) => setFormData({...formData, structure: v})} 
+                    onChange={(v: number) => {
+                      setFormData(prev => ({...prev, structure: v}));
+                      setShowValidation(false);
+                    }} 
                     isError={showValidation && formData.structure === 0}
                   />
                 </div>
@@ -345,7 +427,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ company, onFinished, onBack
                                     className={`flex-1 py-5 rounded-[1.5rem] border-2 font-black text-xs transition-all uppercase tracking-widest ${
                                       formData.internalResponses[q.id] === opt 
                                         ? 'bg-primary border-primary text-white shadow-xl' 
-                                        : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
+                                        : 'bg-white border-slate-100 text-slate-400 hover:border-slate-300'
                                     }`}
                                   >
                                     {opt}
